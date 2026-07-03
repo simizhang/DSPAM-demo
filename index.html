@@ -396,6 +396,26 @@
       color: #98a2b3;
       text-decoration: none;
     }
+    #formView.detail-mode input,
+    #formView.detail-mode select,
+    #formView.detail-mode .select-tags {
+      background: #f8fafc;
+      color: #344054;
+    }
+    #formView.detail-mode .select-tags:focus-within {
+      border-color: var(--line);
+      box-shadow: none;
+    }
+    #formView.detail-mode .form-select-like:after,
+    #formView.detail-mode .select-clear-icon,
+    #formView.detail-mode .tag button {
+      display: none;
+    }
+    #formView.detail-mode #entityInput,
+    #formView.detail-mode #advertiserInput,
+    #formView.detail-mode #emailInput {
+      display: none;
+    }
     .status {
       display: inline-flex;
       align-items: center;
@@ -1110,7 +1130,7 @@
                 <select id="filterStatus" class="w-120">
                   <option>全部</option>
                   <option>生成中</option>
-                  <option>已完成</option>
+                  <option>生成成功</option>
                   <option>生成失败</option>
                 </select>
               </div>
@@ -1296,12 +1316,12 @@
     const weekNames = ["日", "一", "二", "三", "四", "五", "六"];
     const demoToday = new Date(2026, 6, 2);
     const reports = [
-      { id: 1, name: "DSP人群报告-核心广告主周报", status: "已完成", type: "Audiences (targeted)", creator: "Xinmi.Zhang", createdAt: "2026-07-02 11:47:59", period: "2026-06-26 ~ 2026-07-02", entities: ["Apple Inc. / 10086", "Google LLC. / 10087"], advertisers: "Apple Inc. / ADV-10086\nGoogle LLC. / ADV-10087", emails: "owner@example.com\nteam@example.com" },
+      { id: 1, name: "DSP人群报告-核心广告主周报", status: "生成成功", type: "Audiences (targeted)", creator: "Xinmi.Zhang", createdAt: "2026-07-02 11:47:59", period: "2026-06-26 ~ 2026-07-02", entities: ["Apple Inc. / 10086", "Google LLC. / 10087"], advertisers: "Apple Inc. / ADV-10086\nGoogle LLC. / ADV-10087", emails: "owner@example.com\nteam@example.com" },
       { id: 2, name: "DSP人群报告-北美重点客户复盘", status: "生成中", type: "Audiences (targeted)", creator: "DSPAM001", createdAt: "2026-07-02 10:20:13", period: "2026-06-03 ~ 2026-07-02", entities: ["Microsoft / 10088"], advertisers: "Microsoft / ADV-10088", emails: "" },
       { id: 3, name: "DSP人群报告-失败任务验证", status: "生成失败", type: "Audiences (targeted)", creator: "DSPAM009", createdAt: "2026-07-01 18:35:04", period: "2026-06-24 ~ 2026-06-30", entities: ["腾讯科技 / 20001"], advertisers: "腾讯科技 / ADV-20001", emails: "invalid-email" },
-      { id: 4, name: "DSP人群报告-订阅月报模板", status: "已完成", type: "Audiences (targeted)", creator: "Xinmi.Zhang", createdAt: "2026-06-30 09:12:44", period: "2026-06-01 ~ 2026-06-30", entities: ["Google LLC. / 10087"], advertisers: "Google LLC. / ADV-10087", emails: "monthly@example.com" },
-      { id: 5, name: "DSP人群报告-华东广告主日报", status: "已完成", type: "Audiences (targeted)", creator: "DSPAM018", createdAt: "2026-06-28 16:02:21", period: "2026-06-28 ~ 2026-06-28", entities: ["腾讯科技 / 20001", "Apple Inc. / 10086"], advertisers: "腾讯科技 / ADV-20001\nApple Inc. / ADV-10086", emails: "" },
-      { id: 6, name: "DSP人群报告-跨境业务运营报告", status: "已完成", type: "Audiences (targeted)", creator: "DSPAM022", createdAt: "2026-06-24 08:30:00", period: "2026-06-17 ~ 2026-06-23", entities: ["Google LLC. / 10087"], advertisers: "Google LLC. / ADV-10087", emails: "ops@example.com" }
+      { id: 4, name: "DSP人群报告-订阅月报模板", status: "生成成功", type: "Audiences (targeted)", creator: "Xinmi.Zhang", createdAt: "2026-06-30 09:12:44", period: "2026-06-01 ~ 2026-06-30", entities: ["Google LLC. / 10087"], advertisers: "Google LLC. / ADV-10087", emails: "monthly@example.com" },
+      { id: 5, name: "DSP人群报告-华东广告主日报", status: "生成成功", type: "Audiences (targeted)", creator: "DSPAM018", createdAt: "2026-06-28 16:02:21", period: "2026-06-28 ~ 2026-06-28", entities: ["腾讯科技 / 20001", "Apple Inc. / 10086"], advertisers: "腾讯科技 / ADV-20001\nApple Inc. / ADV-10086", emails: "" },
+      { id: 6, name: "DSP人群报告-跨境业务运营报告", status: "生成成功", type: "Audiences (targeted)", creator: "DSPAM022", createdAt: "2026-06-24 08:30:00", period: "2026-06-17 ~ 2026-06-23", entities: ["Google LLC. / 10087"], advertisers: "Google LLC. / ADV-10087", emails: "ops@example.com" }
     ];
     const entityOptions = [
       { name: "Apple Inc.", id: "10086" },
@@ -1351,6 +1371,7 @@
     let draftAdvertisers = [];
     let selectedEmails = [];
     let editingId = null;
+    let formMode = "create";
     let dateTarget = null;
     let calendarMonth = new Date(2026, 6, 1);
     let pickingStart = null;
@@ -1386,7 +1407,7 @@
       window.setTimeout(() => $("toast").classList.remove("show"), 1800);
     }
     function statusClass(status) {
-      return status === "已完成" ? "done" : status === "生成中" ? "running" : status === "生成失败" ? "fail" : "pending";
+      return status === "生成成功" ? "done" : status === "生成中" ? "running" : status === "生成失败" ? "fail" : "pending";
     }
     function statusHtml(status) {
       const loader = status === "生成中" ? '<span class="spinner"></span>' : "";
@@ -1463,7 +1484,9 @@
       updateCreatedAtSortState();
       $("reportRows").innerHTML = rows.map((row, index) => `
         <tr class="${index === 1 ? "selected" : ""}">
-          <td class="sticky-col sticky-name">${row.name}</td>
+          <td class="sticky-col sticky-name">
+            ${row.status === "生成失败" ? `<a class="link" data-edit="${row.id}">${row.name}</a>` : `<a class="link" data-detail="${row.id}">${row.name}</a>`}
+          </td>
           <td>${statusHtml(row.status)}</td>
           <td>${row.type}</td>
           <td>${row.period}</td>
@@ -1472,19 +1495,32 @@
           <td class="sticky-col sticky-action">
             <div class="op-links">
               ${row.status === "生成失败" ? `<a class="link" data-edit="${row.id}">编辑报告</a>` : ""}
-              ${row.status === "已完成" ? `<a class="link" data-download="${row.id}">下载报告</a>` : `<span class="link disabled">下载报告</span>`}
+              ${row.status === "生成成功" ? `<a class="link" data-download="${row.id}">下载报告</a>` : `<span class="link disabled">下载报告</span>`}
             </div>
           </td>
         </tr>
       `).join("");
     }
 
-    function openForm(id) {
-      editingId = id || null;
+    function setFormMode(mode) {
+      formMode = mode;
+      const isDetail = mode === "detail";
+      $("formView").classList.toggle("detail-mode", isDetail);
+      $("saveBtn").style.display = isDetail ? "none" : "";
+      $("cancelBtn").textContent = isDetail ? "返回" : "取消";
+      ["reportName", "entityInput", "advertiserInput", "reportDimensionSelect", "periodDate", "emailInput"].forEach(id => {
+        const field = $(id);
+        if (field) field.disabled = isDetail;
+      });
+    }
+
+    function openForm(id, mode = id ? "edit" : "create") {
+      editingId = mode === "edit" ? id || null : null;
       $("listView").classList.remove("active");
       $("formView").classList.add("active");
       const row = reports.find(item => item.id === id);
-      $("formTitle").textContent = row ? "编辑报告" : "创建报告";
+      setFormMode(mode);
+      $("formTitle").textContent = mode === "detail" ? "报告详情" : row ? "编辑报告" : "创建报告";
       $("reportName").value = row ? row.name : "";
       selectedAdvertisers = row ? row.advertisers.split(/\n+/).map(item => item.trim()).filter(Boolean) : ["Apple Inc. / ADV-10086"];
       $("advertisers").value = selectedAdvertisers.join("\n");
@@ -1697,6 +1733,7 @@
     }
 
     function saveForm() {
+      if (formMode === "detail") return;
       if (!validateForm()) return;
       const name = $("reportName").value.trim();
       const advertisers = Array.from(new Set($("advertisers").value.split(/\n+/).map(x => x.trim()).filter(Boolean))).join("\n");
@@ -1731,8 +1768,8 @@
       $("drawerTitle").textContent = `历史记录 - ${report.name}`;
       const rows = [
         { time: "2026-07-02 12:20:10", status: report.status, user: report.creator },
-        { time: "2026-06-25 09:00:03", status: "已完成", user: "system" },
-        { time: "2026-06-18 09:00:04", status: "已完成", user: "system" },
+        { time: "2026-06-25 09:00:03", status: "生成成功", user: "system" },
+        { time: "2026-06-18 09:00:04", status: "生成成功", user: "system" },
         { time: "2026-06-11 09:00:05", status: "生成失败", user: "system" }
       ];
       $("historyRows").innerHTML = rows.map(item => `
@@ -1754,7 +1791,7 @@
 
     function downloadLatest(id) {
       const report = reports.find(row => row.id === id);
-      showToast(report.status === "已完成" ? "已触发报告下载" : "报告尚未生成完成");
+      showToast(report.status === "生成成功" ? "已触发报告下载" : "报告尚未生成完成");
     }
 
     function openDatePicker(input) {
@@ -1914,6 +1951,7 @@
 
       document.addEventListener("click", (event) => {
         const edit = event.target.closest("[data-edit]");
+        const detail = event.target.closest("[data-detail]");
         const history = event.target.closest("[data-history]");
         const download = event.target.closest("[data-download]");
         const entityDraft = event.target.closest("[data-entity-draft]");
@@ -1930,6 +1968,7 @@
         const historyDownload = event.target.closest("[data-history-download]");
 
         if (edit) openForm(Number(edit.dataset.edit));
+        if (detail) openForm(Number(detail.dataset.detail), "detail");
         if (history) openHistory(Number(history.dataset.history));
         if (download) downloadLatest(Number(download.dataset.download));
         if (entityDraft && entityDraft.dataset.entityDraft) {
@@ -2024,7 +2063,7 @@
           renderMonths();
         }
         if (historyDownload) {
-          showToast(historyDownload.dataset.historyDownload === "已完成" ? "已触发历史报告下载" : "该历史报告不可下载");
+          showToast(historyDownload.dataset.historyDownload === "生成成功" ? "已触发历史报告下载" : "该历史报告不可下载");
         }
         if (!event.target.closest(".date-popover") && !event.target.matches("#listDate") && !event.target.matches("#periodDate")) {
           closeDatePicker();
