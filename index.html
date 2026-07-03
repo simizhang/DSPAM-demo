@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DSPAM 亚马逊报告原型 V1.1</title>
+  <title>DSPAM 亚马逊报告原型 V1.2</title>
   <style>
     :root {
       --brand: #2878ff;
@@ -411,6 +411,16 @@
     #formView.detail-mode .tag button {
       display: none;
     }
+    #formView.detail-mode .advertiser-mode-switch,
+    #formView.detail-mode .advertiser-batch-pane {
+      display: none;
+    }
+    #formView.detail-mode .advertiser-add-pane {
+      display: none;
+    }
+    #formView.detail-mode .advertiser-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
     #formView.detail-mode #entityInput,
     #formView.detail-mode #advertiserInput,
     #formView.detail-mode #emailInput {
@@ -596,11 +606,15 @@
       position: relative;
     }
     .form-select-like:after {
-      content: "⌄";
+      content: "";
       position: absolute;
-      right: 11px;
-      top: 7px;
-      color: #98a2b3;
+      right: 12px;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid #98a2b3;
+      border-bottom: 2px solid #98a2b3;
+      transform: translateY(-68%) rotate(45deg);
       pointer-events: none;
     }
     .compact-control {
@@ -727,6 +741,61 @@
       min-width: 36px;
       height: 20px;
     }
+    .entity-compact {
+      min-height: 28px;
+      height: 28px;
+      align-items: center;
+      align-content: center;
+      flex-wrap: nowrap;
+      padding: 2px 32px 2px 8px;
+      border-color: var(--line);
+      overflow: visible;
+    }
+    .entity-compact input {
+      height: 22px;
+      min-width: 100px;
+    }
+    .entity-compact.has-value input {
+      min-width: 42px;
+      flex: 1 1 42px;
+    }
+    .entity-compact .tag {
+      height: 20px;
+      max-width: 128px;
+      flex: 0 0 auto;
+      background: #eef4ff;
+      color: #1d5fd1;
+      border-color: #c9dcff;
+      border-radius: 3px;
+    }
+    .entity-compact .tag button {
+      color: #1d5fd1;
+    }
+    .entity-compact .select-clear-icon {
+      top: 5px;
+      right: 26px;
+      bottom: auto;
+    }
+    .entity-compact:after {
+      right: 10px;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid #667085;
+      border-bottom: 0;
+      transform: translateY(-35%);
+    }
+    .entity-more-tag {
+      height: 20px;
+      flex: 0 0 auto;
+      background: #eef4ff;
+      border-color: #c9dcff;
+      color: #1d5fd1;
+      border-radius: 3px;
+      padding: 0 7px;
+    }
     .entity-option {
       display: flex;
       align-items: center;
@@ -812,6 +881,176 @@
       padding: 8px 10px;
       border-top: 1px solid var(--line);
       background: #fff;
+    }
+    .advertiser-mode-switch {
+      display: inline-flex;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+    .advertiser-mode-switch button {
+      height: 24px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      border-radius: 0;
+      padding: 0 10px;
+      color: #475467;
+      background: transparent;
+    }
+    .advertiser-mode-switch button:last-child {
+      border-right: 0;
+    }
+    .advertiser-mode-switch button.active {
+      color: var(--brand);
+      background: var(--brand-weak);
+      font-weight: 400;
+    }
+    #advertiserRow .label-line {
+      margin-bottom: 8px;
+    }
+    .advertiser-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+      gap: 12px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid #dfe4ec;
+      border-radius: var(--radius);
+      background: #f8fafc;
+    }
+    .advertiser-add-pane,
+    .advertiser-selected-pane {
+      min-width: 0;
+      min-height: 184px;
+      background: #fff;
+      border: 1px solid #e4e9f2;
+      border-radius: var(--radius);
+    }
+    .advertiser-pane-header {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--soft-line);
+      color: #344054;
+      font-weight: 400;
+    }
+    .advertiser-selected-count {
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 8px;
+      border-radius: 11px;
+      background: #f2f4f7;
+      color: #667085;
+      font-weight: 400;
+    }
+    .advertiser-pane-body {
+      padding: 10px;
+    }
+    .advertiser-selected-box {
+      height: 118px;
+      background: #fff;
+      padding: 0 24px 26px 0;
+      position: relative;
+      overflow-y: auto;
+    }
+    .advertiser-selected-tags {
+      display: flex;
+      align-items: flex-start;
+      align-content: flex-start;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .selected-empty {
+      color: #98a2b3;
+      line-height: 22px;
+    }
+    .advertiser-selected-box .select-clear-icon {
+      right: 0;
+      bottom: 0;
+    }
+    .advertiser-add-pane #advertiserBox {
+      min-height: 34px;
+      align-items: center;
+      align-content: center;
+      padding: 4px 32px 4px 8px;
+    }
+    .advertiser-add-pane #advertiserInput {
+      min-width: 180px;
+    }
+    .advertiser-add-pane #advertiserBox:after {
+      right: 10px;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid #667085;
+      border-bottom: 0;
+      transform: translateY(-35%);
+    }
+    .advertiser-batch-pane {
+      display: none;
+      padding: 10px;
+    }
+    .advertiser-batch-pane.active {
+      display: block;
+    }
+    .batch-mode #advertiserBox {
+      display: none;
+    }
+    .batch-mode .advertiser-add-pane .advertiser-pane-body {
+      display: none;
+    }
+    .batch-mode #advertiserInput,
+    .batch-mode #advertiserPanel,
+    .batch-mode #advertiserBox:after {
+      display: none;
+    }
+    .batch-input {
+      min-height: 78px;
+      resize: vertical;
+    }
+    .batch-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .batch-result {
+      display: none;
+      margin-top: 4px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #475467;
+      line-height: 18px;
+    }
+    .batch-result.show {
+      display: block;
+    }
+    .batch-result.success {
+      border-color: transparent;
+      background: transparent;
+      color: #157347;
+    }
+    .batch-result.warning {
+      border-color: transparent;
+      background: transparent;
+      color: var(--danger);
+    }
+    .batch-result.error-state {
+      border-color: transparent;
+      background: transparent;
+      color: var(--danger);
+    }
+    .batch-result-title {
+      font-weight: 400;
+      margin-bottom: 0;
     }
     .radio-row, .freq-row, .weekday-row {
       display: flex;
@@ -1094,7 +1333,8 @@
         <div class="nav-item">账号管理 <span class="chev">⌄</span></div>
         <div class="nav-item">业务统计 <span class="chev">⌄</span></div>
         <div class="nav-item">审批管理 <span class="chev">⌄</span></div>
-        <div class="nav-item active">亚马逊报告</div>
+        <div class="nav-item">亚马逊报告 <span class="chev">⌄</span></div>
+        <div class="nav-item small active">亚马逊报告</div>
         <div class="nav-item">日志管理 <span class="chev">⌄</span></div>
         <div class="nav-item">系统设置 <span class="chev">⌄</span></div>
       </nav>
@@ -1150,7 +1390,7 @@
               <button class="primary" id="searchBtn">查询</button>
               <button id="resetBtn">重置</button>
             </div>
-            <button class="primary" id="createBtn">＋ 创建报告</button>
+            <button class="primary" id="createBtn">创建报告</button>
           </div>
 
           <div class="table-panel">
@@ -1198,28 +1438,61 @@
                     <span class="section-title-main"><span class="section-icon basic"></span><span>基础设置</span></span>
                   </div>
                   <div class="section-content">
-                    <div class="form-row full">
+                    <div class="form-row">
                       <div class="label-line"><label class="required">报告名称</label><span class="hint"><span id="nameCount">0</span>/50</span></div>
                       <input id="reportName" maxlength="50" placeholder="请输入报告名称">
                       <div id="nameError" class="error">请输入报告名称</div>
                     </div>
                     <div class="form-row">
                       <div class="label-line"><label class="required">Entity</label></div>
-                      <div class="select-tags multi-select form-select-like" id="entityBox">
+                      <div class="select-tags multi-select entity-compact form-select-like" id="entityBox">
                         <div id="entityTags" style="display: contents;"></div>
-                        <input id="entityInput" placeholder="搜索 Entity 名称或 ID">
+                        <input id="entityInput" placeholder="搜索 Entity 名称">
                         <button class="select-clear-icon" id="clearEntities" type="button" aria-label="清空 Entity" title="清空"></button>
                         <div id="entityPanel" class="entity-panel"></div>
                       </div>
                       <div id="entityError" class="error">请至少选择一个 Entity</div>
                     </div>
-                    <div class="form-row">
-                      <div class="label-line"><label class="required">广告主</label></div>
-                      <div class="select-tags multi-select form-select-like" id="advertiserBox">
-                        <div id="advertiserTags" style="display: contents;"></div>
-                        <input id="advertiserInput" placeholder="搜索广告主名称或 ID">
-                        <button class="select-clear-icon" id="clearAdvertisers" type="button" aria-label="清空广告主" title="清空"></button>
-                        <div id="advertiserPanel" class="entity-panel advertiser-panel"></div>
+                    <div class="form-row full" id="advertiserRow">
+                      <div class="label-line">
+                        <label class="required">广告主</label>
+                      </div>
+                      <div class="advertiser-layout">
+                        <div class="advertiser-add-pane">
+                          <div class="advertiser-pane-header">
+                            <span>添加广告主</span>
+                            <div class="advertiser-mode-switch" role="tablist" aria-label="广告主添加方式">
+                              <button type="button" class="active" data-advertiser-mode="select">选择广告主</button>
+                              <button type="button" data-advertiser-mode="batch">批量输入</button>
+                            </div>
+                          </div>
+                          <div class="advertiser-pane-body">
+                            <div class="select-tags multi-select form-select-like" id="advertiserBox">
+                              <input id="advertiserInput" placeholder="搜索广告主名称">
+                              <div id="advertiserPanel" class="entity-panel advertiser-panel"></div>
+                            </div>
+                          </div>
+                          <div class="advertiser-batch-pane" id="advertiserBatchPane">
+                            <textarea id="advertiserBatchInput" class="batch-input" placeholder="可输入广告主名称，支持换行、逗号分隔"></textarea>
+                            <div class="batch-result" id="advertiserBatchResult"></div>
+                            <div class="batch-actions">
+                              <button type="button" id="batchClearBtn">清空</button>
+                              <button type="button" class="primary" id="batchValidateBtn">校验并添加</button>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="advertiser-selected-pane">
+                          <div class="advertiser-pane-header">
+                            <span>已选择广告主</span>
+                            <span class="advertiser-selected-count">已选 <span id="advertiserSelectedCount">0</span></span>
+                          </div>
+                          <div class="advertiser-pane-body">
+                            <div class="advertiser-selected-box">
+                              <div id="advertiserTags" class="advertiser-selected-tags"></div>
+                              <button class="select-clear-icon" id="clearAdvertisers" type="button" aria-label="清空广告主" title="清空"></button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       <textarea id="advertisers" class="hidden-field">Shanghai Sishu</textarea>
                       <div id="advertiserError" class="error">请输入广告主</div>
@@ -1326,7 +1599,14 @@
     const entityOptions = [
       { name: "Apple Inc.", id: "10086" },
       { name: "Google LLC.", id: "10087" },
-      { name: "Microsoft", id: "10088" }
+      { name: "Microsoft", id: "10088" },
+      { name: "腾讯科技", id: "20001" },
+      { name: "字节跳动", id: "20002" },
+      { name: "Amazon Ads", id: "30001" },
+      { name: "Nike", id: "30002" },
+      { name: "Samsung", id: "30003" },
+      { name: "Unilever", id: "30004" },
+      { name: "Sony", id: "30005" }
     ];
     const advertisersByEntity = {
       "10086": [
@@ -1369,6 +1649,7 @@
     let draftEntities = [];
     let selectedAdvertisers = [];
     let draftAdvertisers = [];
+    let advertiserMode = "select";
     let selectedEmails = [];
     let editingId = null;
     let formMode = "create";
@@ -1508,9 +1789,12 @@
       $("formView").classList.toggle("detail-mode", isDetail);
       $("saveBtn").style.display = isDetail ? "none" : "";
       $("cancelBtn").textContent = isDetail ? "返回" : "取消";
-      ["reportName", "entityInput", "advertiserInput", "reportDimensionSelect", "periodDate", "emailInput"].forEach(id => {
+      ["reportName", "entityInput", "advertiserInput", "advertiserBatchInput", "batchClearBtn", "batchValidateBtn", "reportDimensionSelect", "periodDate", "emailInput"].forEach(id => {
         const field = $(id);
         if (field) field.disabled = isDetail;
+      });
+      document.querySelectorAll("[data-advertiser-mode]").forEach(button => {
+        button.disabled = isDetail;
       });
     }
 
@@ -1524,6 +1808,9 @@
       $("reportName").value = row ? row.name : "";
       selectedAdvertisers = row ? row.advertisers.split(/\n+/).map(item => item.trim()).filter(Boolean) : ["Apple Inc. / ADV-10086"];
       $("advertisers").value = selectedAdvertisers.join("\n");
+      setAdvertiserMode("select");
+      $("advertiserBatchInput").value = "";
+      clearBatchResult();
       selectedEmails = row ? row.emails.split(/\n+/).map(item => item.trim()).filter(Boolean) : [];
       renderEmailTags();
       $("periodDate").value = row ? row.period : "";
@@ -1574,13 +1861,45 @@
 
     function updateClearControls() {
       $("clearEntities").classList.toggle("show", Boolean(selectedEntities.length || $("entityInput").value.trim()));
-      $("clearAdvertisers").classList.toggle("show", Boolean(selectedAdvertisers.length || $("advertiserInput").value.trim()));
+      $("clearAdvertisers").classList.toggle("show", Boolean(selectedAdvertisers.length));
+    }
+
+    function estimateEntityTagWidth(value) {
+      const name = displayOptionName(value);
+      return Math.min(128, Math.max(54, name.length * 7 + 34));
+    }
+
+    function visibleEntityTagCount() {
+      if (!selectedEntities.length) return 0;
+      const box = $("entityBox");
+      const boxWidth = box ? box.clientWidth : 360;
+      const reserved = 32 + 26 + 48;
+      const available = Math.max(64, boxWidth - reserved);
+      let used = 0;
+      let count = 0;
+      for (let index = 0; index < selectedEntities.length; index += 1) {
+        const remaining = selectedEntities.length - index - 1;
+        const gap = count ? 6 : 0;
+        const tagWidth = estimateEntityTagWidth(selectedEntities[index]);
+        const moreWidth = remaining > 0 ? 42 + (count ? 6 : 0) : 0;
+        if (count === 0 || used + gap + tagWidth + moreWidth <= available) {
+          used += gap + tagWidth;
+          count += 1;
+        } else {
+          break;
+        }
+      }
+      return count;
     }
 
     function renderEntityTags() {
-      $("entityTags").innerHTML = selectedEntities.map((item, index) => `
-        <span class="tag"><span>${item}</span><button data-remove-entity="${index}" title="删除">×</button></span>
-      `).join("");
+      const visibleCount = visibleEntityTagCount();
+      const visibleItems = selectedEntities.slice(0, visibleCount);
+      $("entityBox").classList.toggle("has-value", Boolean(selectedEntities.length));
+      $("entityTags").innerHTML = visibleItems.map((item, index) => `
+        <span class="tag"><span>${displayOptionName(item)}</span><button data-remove-entity="${index}" title="删除">×</button></span>
+      `).join("") + (selectedEntities.length > visibleCount ? `<span class="tag entity-more-tag">+${selectedEntities.length - visibleCount}</span>` : "");
+      $("entityInput").placeholder = selectedEntities.length ? "" : "搜索 Entity 名称";
       updateClearControls();
     }
 
@@ -1592,8 +1911,114 @@
       return `${item.name} / ${item.id}`;
     }
 
+    function displayOptionName(value) {
+      return String(value).split("/")[0].trim();
+    }
+
     function mergeDraftSelection(current, values) {
       return Array.from(new Set([...current, ...values]));
+    }
+
+    function setAdvertiserMode(mode) {
+      advertiserMode = mode;
+      const isBatch = mode === "batch";
+      $("advertiserRow").classList.toggle("batch-mode", isBatch);
+      $("advertiserBatchPane").classList.toggle("active", isBatch);
+      document.querySelectorAll("[data-advertiser-mode]").forEach(button => {
+        button.classList.toggle("active", button.dataset.advertiserMode === mode);
+      });
+      if (isBatch) {
+        $("advertiserPanel").classList.remove("open");
+      } else {
+        $("advertiserBatchInput").classList.remove("textarea-error");
+      }
+    }
+
+    function splitBatchAdvertisers(raw) {
+      const seen = new Set();
+      return raw
+        .split(/[\n,，]+/)
+        .map(item => item.trim())
+        .filter(Boolean)
+        .filter(item => {
+          const key = item.toLowerCase();
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+    }
+
+    function normalizeAdvertiserKey(value) {
+      return value.toLowerCase().replace(/\s*\/\s*/g, " / ").replace(/\s+/g, " ").trim();
+    }
+
+    function findAdvertiserMatch(input) {
+      const key = normalizeAdvertiserKey(input);
+      return availableAdvertisers().find(item => {
+        return normalizeAdvertiserKey(item.name) === key;
+      });
+    }
+
+    function renderBatchResult(type, title) {
+      $("advertiserBatchResult").className = `batch-result show ${type}`;
+      $("advertiserBatchResult").innerHTML = `<div class="batch-result-title">${title}</div>`;
+    }
+
+    function clearBatchResult() {
+      $("advertiserBatchResult").className = "batch-result";
+      $("advertiserBatchResult").innerHTML = "";
+      $("advertiserBatchInput").classList.remove("textarea-error");
+    }
+
+    function validateBatchAdvertisers() {
+      const values = splitBatchAdvertisers($("advertiserBatchInput").value);
+      if (!selectedEntities.length) {
+        $("advertiserBatchInput").classList.add("textarea-error");
+        renderBatchResult("error-state", "请选选择Entity");
+        return false;
+      }
+      if (!values.length) {
+        $("advertiserBatchInput").classList.add("textarea-error");
+        renderBatchResult("error-state", "请输入广告主名称");
+        return false;
+      }
+
+      const matched = [];
+      const existed = [];
+      const invalid = [];
+      values.forEach(raw => {
+        const item = findAdvertiserMatch(raw);
+        if (!item) {
+          invalid.push(raw);
+          return;
+        }
+        const value = optionValue(item);
+        if (selectedAdvertisers.includes(value) || matched.includes(value)) {
+          existed.push(value);
+        } else {
+          matched.push(value);
+        }
+      });
+
+      selectedAdvertisers = mergeDraftSelection(selectedAdvertisers, matched);
+      draftAdvertisers = [...selectedAdvertisers];
+      renderAdvertiserTags();
+      $("advertiserBatchInput").value = invalid.join("\n");
+      $("advertiserBatchInput").classList.toggle("textarea-error", Boolean(invalid.length));
+
+      if (invalid.length) {
+        renderBatchResult("error-state", `${invalid.length} 个广告主未匹配，请检查后重新添加。`);
+      } else {
+        const parts = [
+          matched.length ? `已添加 ${matched.length} 个广告主` : "",
+          existed.length ? `${existed.length} 个广告主已存在` : ""
+        ].filter(Boolean);
+        renderBatchResult("success", parts.join("，") || "校验完成。");
+      }
+      if (!invalid.length) {
+        $("advertiserBatchInput").value = "";
+      }
+      return !invalid.length;
     }
 
     function renderEntityPanel(keyword = "") {
@@ -1615,7 +2040,6 @@
         <div class="entity-option ${draftEntities.includes(optionValue(item)) ? "selected" : ""}" data-entity-draft="${optionValue(item)}">
           <div class="option-copy">
             <div class="name">${item.name}</div>
-            <div class="id">${item.id}</div>
           </div>
         </div>
       `).join("") : '<div class="entity-option">暂无匹配结果</div>';
@@ -1643,13 +2067,16 @@
     function syncAdvertisersByEntity() {
       const allowed = new Set(availableAdvertisers().map(item => `${item.name} / ${item.id}`));
       selectedAdvertisers = selectedAdvertisers.filter(item => allowed.has(item));
+      draftAdvertisers = draftAdvertisers.filter(item => allowed.has(item));
+      clearBatchResult();
       renderAdvertiserTags();
     }
 
     function renderAdvertiserTags() {
-      $("advertiserTags").innerHTML = selectedAdvertisers.map((item, index) => `
-        <span class="tag"><span>${item}</span><button data-remove-advertiser="${index}" title="删除">×</button></span>
-      `).join("");
+      $("advertiserTags").innerHTML = selectedAdvertisers.length ? selectedAdvertisers.map((item, index) => `
+        <span class="tag"><span>${displayOptionName(item)}</span><button data-remove-advertiser="${index}" title="删除">×</button></span>
+      `).join("") : '<span class="selected-empty">暂无已选择广告主</span>';
+      $("advertiserSelectedCount").textContent = selectedAdvertisers.length;
       syncAdvertisers();
       updateClearControls();
     }
@@ -1680,7 +2107,6 @@
         <div class="entity-option ${draftAdvertisers.includes(optionValue(item)) ? "selected" : ""}" data-advertiser-draft="${optionValue(item)}">
           <div class="option-copy">
             <div class="name">${item.name}</div>
-            <div class="id">${item.id}</div>
           </div>
         </div>
       `).join("") : '<div class="entity-option">暂无匹配结果</div>';
@@ -1741,6 +2167,9 @@
       const pendingEmailValid = addEmailsFromInput();
       let valid = true;
       if (!pendingEmailValid) valid = false;
+      if (advertiserMode === "batch" && $("advertiserBatchInput").value.trim() && !validateBatchAdvertisers()) {
+        valid = false;
+      }
       if (!$("reportName").value.trim()) { $("nameError").classList.add("show"); valid = false; }
       if (!selectedEntities.length) { $("entityError").classList.add("show"); valid = false; }
       if (!$("periodDate").value.trim()) { showPeriodError("请选择报告期"); valid = false; }
@@ -1916,6 +2345,7 @@
         createdAtSort = createdAtSort === "desc" ? "asc" : "desc";
         filterReports(false);
       });
+      window.addEventListener("resize", renderEntityTags);
       $("reportName").addEventListener("input", updateNameCount);
       $("entityInput").addEventListener("focus", () => { draftEntities = [...selectedEntities]; renderEntityPanel($("entityInput").value); });
       $("entityInput").addEventListener("input", () => {
@@ -1925,6 +2355,19 @@
       $("advertiserInput").addEventListener("focus", () => { draftAdvertisers = [...selectedAdvertisers]; renderAdvertiserPanel($("advertiserInput").value); });
       $("advertiserInput").addEventListener("input", () => {
         renderAdvertiserPanel($("advertiserInput").value);
+        updateClearControls();
+      });
+      document.querySelectorAll("[data-advertiser-mode]").forEach(button => {
+        button.addEventListener("click", () => setAdvertiserMode(button.dataset.advertiserMode));
+      });
+      $("advertiserBatchInput").addEventListener("input", () => {
+        clearBatchResult();
+        updateClearControls();
+      });
+      $("batchValidateBtn").addEventListener("click", validateBatchAdvertisers);
+      $("batchClearBtn").addEventListener("click", () => {
+        $("advertiserBatchInput").value = "";
+        clearBatchResult();
         updateClearControls();
       });
       $("emailInput").addEventListener("keydown", (event) => {
@@ -1944,6 +2387,8 @@
         draftAdvertisers = [];
         $("entityInput").value = "";
         $("advertiserInput").value = "";
+        $("advertiserBatchInput").value = "";
+        clearBatchResult();
         renderEntityTags();
         syncAdvertisersByEntity();
         if (entityPanelOpen) {
@@ -1962,6 +2407,8 @@
         selectedAdvertisers = [];
         draftAdvertisers = [];
         $("advertiserInput").value = "";
+        $("advertiserBatchInput").value = "";
+        clearBatchResult();
         renderAdvertiserTags();
         if (advertiserPanelOpen) {
           renderAdvertiserPanel("");
