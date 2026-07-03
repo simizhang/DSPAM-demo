@@ -1588,14 +1588,31 @@
       return selectedEntities.map(item => item.split("/").pop().trim());
     }
 
+    function optionValue(item) {
+      return `${item.name} / ${item.id}`;
+    }
+
+    function mergeDraftSelection(current, values) {
+      return Array.from(new Set([...current, ...values]));
+    }
+
     function renderEntityPanel(keyword = "") {
       const kw = keyword.trim().toLowerCase();
       const list = entityOptions.filter(item => {
         const hit = !kw || item.name.toLowerCase().includes(kw) || item.id.includes(kw);
         return hit;
       });
-      $("entityPanel").innerHTML = list.length ? list.map(item => `
-        <div class="entity-option ${draftEntities.includes(`${item.name} / ${item.id}`) ? "selected" : ""}" data-entity-draft="${item.name} / ${item.id}">
+      const allValues = list.map(optionValue);
+      const allSelected = allValues.length && allValues.every(value => draftEntities.includes(value));
+      const allOption = list.length ? `
+        <div class="entity-option ${allSelected ? "selected" : ""}" data-entity-all>
+          <div class="option-copy">
+            <div class="name">全部</div>
+          </div>
+        </div>
+      ` : "";
+      $("entityPanel").innerHTML = list.length ? allOption + list.map(item => `
+        <div class="entity-option ${draftEntities.includes(optionValue(item)) ? "selected" : ""}" data-entity-draft="${optionValue(item)}">
           <div class="option-copy">
             <div class="name">${item.name}</div>
             <div class="id">${item.id}</div>
@@ -1650,8 +1667,17 @@
         const hit = !kw || item.name.toLowerCase().includes(kw) || item.id.toLowerCase().includes(kw);
         return hit;
       });
-      $("advertiserPanel").innerHTML = list.length ? list.map(item => `
-        <div class="entity-option ${draftAdvertisers.includes(`${item.name} / ${item.id}`) ? "selected" : ""}" data-advertiser-draft="${item.name} / ${item.id}">
+      const allValues = list.map(optionValue);
+      const allSelected = allValues.length && allValues.every(value => draftAdvertisers.includes(value));
+      const allOption = list.length ? `
+        <div class="entity-option ${allSelected ? "selected" : ""}" data-advertiser-all>
+          <div class="option-copy">
+            <div class="name">全部</div>
+          </div>
+        </div>
+      ` : "";
+      $("advertiserPanel").innerHTML = list.length ? allOption + list.map(item => `
+        <div class="entity-option ${draftAdvertisers.includes(optionValue(item)) ? "selected" : ""}" data-advertiser-draft="${optionValue(item)}">
           <div class="option-copy">
             <div class="name">${item.name}</div>
             <div class="id">${item.id}</div>
@@ -1954,10 +1980,12 @@
         const detail = event.target.closest("[data-detail]");
         const history = event.target.closest("[data-history]");
         const download = event.target.closest("[data-download]");
+        const entityAll = event.target.closest("[data-entity-all]");
         const entityDraft = event.target.closest("[data-entity-draft]");
         const entityConfirm = event.target.closest("[data-entity-confirm]");
         const entityReset = event.target.closest("[data-entity-reset]");
         const removeEntity = event.target.closest("[data-remove-entity]");
+        const advertiserAll = event.target.closest("[data-advertiser-all]");
         const advertiserDraft = event.target.closest("[data-advertiser-draft]");
         const advertiserConfirm = event.target.closest("[data-advertiser-confirm]");
         const advertiserReset = event.target.closest("[data-advertiser-reset]");
@@ -1971,6 +1999,16 @@
         if (detail) openForm(Number(detail.dataset.detail), "detail");
         if (history) openHistory(Number(history.dataset.history));
         if (download) downloadLatest(Number(download.dataset.download));
+        if (entityAll) {
+          event.stopPropagation();
+          const kw = $("entityInput").value.trim().toLowerCase();
+          const values = entityOptions
+            .filter(item => !kw || item.name.toLowerCase().includes(kw) || item.id.includes(kw))
+            .map(optionValue);
+          draftEntities = mergeDraftSelection(draftEntities, values);
+          renderEntityPanel($("entityInput").value);
+          return;
+        }
         if (entityDraft && entityDraft.dataset.entityDraft) {
           event.stopPropagation();
           const existingIndex = draftEntities.indexOf(entityDraft.dataset.entityDraft);
@@ -2004,6 +2042,16 @@
           draftEntities = [...selectedEntities];
           renderEntityTags();
           syncAdvertisersByEntity();
+          return;
+        }
+        if (advertiserAll) {
+          event.stopPropagation();
+          const kw = $("advertiserInput").value.trim().toLowerCase();
+          const values = availableAdvertisers()
+            .filter(item => !kw || item.name.toLowerCase().includes(kw) || item.id.toLowerCase().includes(kw))
+            .map(optionValue);
+          draftAdvertisers = mergeDraftSelection(draftAdvertisers, values);
+          renderAdvertiserPanel($("advertiserInput").value);
           return;
         }
         if (advertiserDraft && advertiserDraft.dataset.advertiserDraft) {
