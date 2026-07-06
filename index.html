@@ -396,6 +396,9 @@
       color: #98a2b3;
       text-decoration: none;
     }
+    .link.download-disabled {
+      pointer-events: auto;
+    }
     #formView.detail-mode input,
     #formView.detail-mode select,
     #formView.detail-mode .select-tags {
@@ -761,7 +764,7 @@
     }
     .entity-compact .tag {
       height: 20px;
-      max-width: 128px;
+      max-width: 168px;
       flex: 0 0 auto;
       background: #eef4ff;
       color: #1d5fd1;
@@ -1447,7 +1450,7 @@
                       <div class="label-line"><label class="required">Entity</label></div>
                       <div class="select-tags multi-select entity-compact form-select-like" id="entityBox">
                         <div id="entityTags" style="display: contents;"></div>
-                        <input id="entityInput" placeholder="搜索 Entity 名称">
+                        <input id="entityInput" placeholder="搜索 Entity 名称或 ID">
                         <button class="select-clear-icon" id="clearEntities" type="button" aria-label="清空 Entity" title="清空"></button>
                         <div id="entityPanel" class="entity-panel"></div>
                       </div>
@@ -1468,12 +1471,12 @@
                           </div>
                           <div class="advertiser-pane-body">
                             <div class="select-tags multi-select form-select-like" id="advertiserBox">
-                              <input id="advertiserInput" placeholder="搜索广告主名称">
+                              <input id="advertiserInput" placeholder="搜索广告主名称或 ID">
                               <div id="advertiserPanel" class="entity-panel advertiser-panel"></div>
                             </div>
                           </div>
                           <div class="advertiser-batch-pane" id="advertiserBatchPane">
-                            <textarea id="advertiserBatchInput" class="batch-input" placeholder="可输入广告主名称，支持换行、逗号分隔"></textarea>
+                            <textarea id="advertiserBatchInput" class="batch-input" placeholder="可输入广告主名称或 ID，支持换行、逗号分隔"></textarea>
                             <div class="batch-result" id="advertiserBatchResult"></div>
                             <div class="batch-actions">
                               <button type="button" id="batchClearBtn">清空</button>
@@ -1760,6 +1763,29 @@
       return [...data].sort((a, b) => a.createdAt.localeCompare(b.createdAt) * direction);
     }
 
+    function parseCreatedAt(value) {
+      const [datePart, timePart = "00:00:00"] = String(value).split(" ");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hour = 0, minute = 0, second = 0] = timePart.split(":").map(Number);
+      return new Date(year, month - 1, day, hour, minute, second);
+    }
+
+    function isCreatedWithinDownloadWindow(createdAt) {
+      const created = parseCreatedAt(createdAt);
+      const windowStart = addDays(demoToday, -29);
+      return dayStamp(created) >= dayStamp(windowStart) && dayStamp(created) <= dayStamp(demoToday);
+    }
+
+    function downloadActionHtml(row) {
+      if (row.status !== "生成成功") {
+        return `<span class="link disabled">下载报告</span>`;
+      }
+      if (!isCreatedWithinDownloadWindow(row.createdAt)) {
+        return `<span class="link disabled download-disabled" title="仅支持下载最近30天内生成的报告数据" aria-disabled="true">下载报告</span>`;
+      }
+      return `<a class="link" data-download="${row.id}">下载报告</a>`;
+    }
+
     function renderRows(data = reports) {
       const rows = sortReportsByCreatedAt(data);
       updateCreatedAtSortState();
@@ -1776,7 +1802,7 @@
           <td class="sticky-col sticky-action">
             <div class="op-links">
               ${row.status === "生成失败" ? `<a class="link" data-edit="${row.id}">编辑报告</a>` : ""}
-              ${row.status === "生成成功" ? `<a class="link" data-download="${row.id}">下载报告</a>` : `<span class="link disabled">下载报告</span>`}
+              ${downloadActionHtml(row)}
             </div>
           </td>
         </tr>
@@ -1865,8 +1891,8 @@
     }
 
     function estimateEntityTagWidth(value) {
-      const name = displayOptionName(value);
-      return Math.min(128, Math.max(54, name.length * 7 + 34));
+      const label = displaySelectedOption(value);
+      return Math.min(168, Math.max(72, label.length * 7 + 34));
     }
 
     function visibleEntityTagCount() {
@@ -1897,9 +1923,9 @@
       const visibleItems = selectedEntities.slice(0, visibleCount);
       $("entityBox").classList.toggle("has-value", Boolean(selectedEntities.length));
       $("entityTags").innerHTML = visibleItems.map((item, index) => `
-        <span class="tag"><span>${displayOptionName(item)}</span><button data-remove-entity="${index}" title="删除">×</button></span>
+        <span class="tag" title="${displaySelectedOption(item)}"><span>${displaySelectedOption(item)}</span><button data-remove-entity="${index}" title="删除">×</button></span>
       `).join("") + (selectedEntities.length > visibleCount ? `<span class="tag entity-more-tag">+${selectedEntities.length - visibleCount}</span>` : "");
-      $("entityInput").placeholder = selectedEntities.length ? "" : "搜索 Entity 名称";
+      $("entityInput").placeholder = selectedEntities.length ? "" : "搜索 Entity 名称或 ID";
       updateClearControls();
     }
 
@@ -1911,8 +1937,14 @@
       return `${item.name} / ${item.id}`;
     }
 
-    function displayOptionName(value) {
-      return String(value).split("/")[0].trim();
+    function displaySelectedOption(value) {
+      return String(value).trim();
+    }
+
+    function optionMatchesKeyword(item, keyword) {
+      const kw = keyword.trim().toLowerCase();
+      if (!kw) return true;
+      return item.name.toLowerCase().includes(kw) || item.id.toLowerCase().includes(kw) || optionValue(item).toLowerCase().includes(kw);
     }
 
     function mergeDraftSelection(current, values) {
@@ -1955,7 +1987,7 @@
     function findAdvertiserMatch(input) {
       const key = normalizeAdvertiserKey(input);
       return availableAdvertisers().find(item => {
-        return normalizeAdvertiserKey(item.name) === key;
+        return [item.name, item.id, optionValue(item)].some(value => normalizeAdvertiserKey(value) === key);
       });
     }
 
@@ -1979,7 +2011,7 @@
       }
       if (!values.length) {
         $("advertiserBatchInput").classList.add("textarea-error");
-        renderBatchResult("error-state", "请输入广告主名称");
+        renderBatchResult("error-state", "请输入广告主名称或ID");
         return false;
       }
 
@@ -2022,9 +2054,8 @@
     }
 
     function renderEntityPanel(keyword = "") {
-      const kw = keyword.trim().toLowerCase();
       const list = entityOptions.filter(item => {
-        const hit = !kw || item.name.toLowerCase().includes(kw) || item.id.includes(kw);
+        const hit = optionMatchesKeyword(item, keyword);
         return hit;
       });
       const allValues = list.map(optionValue);
@@ -2040,6 +2071,7 @@
         <div class="entity-option ${draftEntities.includes(optionValue(item)) ? "selected" : ""}" data-entity-draft="${optionValue(item)}">
           <div class="option-copy">
             <div class="name">${item.name}</div>
+            <div class="id">${item.id}</div>
           </div>
         </div>
       `).join("") : '<div class="entity-option">暂无匹配结果</div>';
@@ -2074,7 +2106,7 @@
 
     function renderAdvertiserTags() {
       $("advertiserTags").innerHTML = selectedAdvertisers.length ? selectedAdvertisers.map((item, index) => `
-        <span class="tag"><span>${displayOptionName(item)}</span><button data-remove-advertiser="${index}" title="删除">×</button></span>
+        <span class="tag" title="${displaySelectedOption(item)}"><span>${displaySelectedOption(item)}</span><button data-remove-advertiser="${index}" title="删除">×</button></span>
       `).join("") : '<span class="selected-empty">暂无已选择广告主</span>';
       $("advertiserSelectedCount").textContent = selectedAdvertisers.length;
       syncAdvertisers();
@@ -2082,7 +2114,6 @@
     }
 
     function renderAdvertiserPanel(keyword = "") {
-      const kw = keyword.trim().toLowerCase();
       const available = availableAdvertisers();
       if (!selectedEntities.length) {
         $("advertiserPanel").innerHTML = '<div class="entity-option">请先选择 Entity</div><div class="panel-actions"><button type="button" data-advertiser-reset>重置</button><button type="button" class="primary" data-advertiser-confirm>确定</button></div>';
@@ -2090,8 +2121,7 @@
         return;
       }
       const list = available.filter(item => {
-        const value = `${item.name} / ${item.id}`;
-        const hit = !kw || item.name.toLowerCase().includes(kw) || item.id.toLowerCase().includes(kw);
+        const hit = optionMatchesKeyword(item, keyword);
         return hit;
       });
       const allValues = list.map(optionValue);
@@ -2107,6 +2137,7 @@
         <div class="entity-option ${draftAdvertisers.includes(optionValue(item)) ? "selected" : ""}" data-advertiser-draft="${optionValue(item)}">
           <div class="option-copy">
             <div class="name">${item.name}</div>
+            <div class="id">${item.id}</div>
           </div>
         </div>
       `).join("") : '<div class="entity-option">暂无匹配结果</div>';
@@ -2246,7 +2277,15 @@
 
     function downloadLatest(id) {
       const report = reports.find(row => row.id === id);
-      showToast(report.status === "生成成功" ? "已触发报告下载" : "报告尚未生成完成");
+      if (report.status !== "生成成功") {
+        showToast("报告尚未生成完成");
+        return;
+      }
+      if (!isCreatedWithinDownloadWindow(report.createdAt)) {
+        showToast("仅支持下载最近30天内生成的报告数据");
+        return;
+      }
+      showToast("已触发报告下载");
     }
 
     function openDatePicker(input) {
@@ -2448,9 +2487,8 @@
         if (download) downloadLatest(Number(download.dataset.download));
         if (entityAll) {
           event.stopPropagation();
-          const kw = $("entityInput").value.trim().toLowerCase();
           const values = entityOptions
-            .filter(item => !kw || item.name.toLowerCase().includes(kw) || item.id.includes(kw))
+            .filter(item => optionMatchesKeyword(item, $("entityInput").value))
             .map(optionValue);
           draftEntities = mergeDraftSelection(draftEntities, values);
           renderEntityPanel($("entityInput").value);
@@ -2493,9 +2531,8 @@
         }
         if (advertiserAll) {
           event.stopPropagation();
-          const kw = $("advertiserInput").value.trim().toLowerCase();
           const values = availableAdvertisers()
-            .filter(item => !kw || item.name.toLowerCase().includes(kw) || item.id.toLowerCase().includes(kw))
+            .filter(item => optionMatchesKeyword(item, $("advertiserInput").value))
             .map(optionValue);
           draftAdvertisers = mergeDraftSelection(draftAdvertisers, values);
           renderAdvertiserPanel($("advertiserInput").value);
