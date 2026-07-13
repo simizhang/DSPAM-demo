@@ -254,6 +254,20 @@
       flex-wrap: wrap;
       gap: 8px;
     }
+    .report-tip {
+      height: 30px;
+      margin-bottom: 8px;
+      padding: 0 10px;
+      border: 1px solid #3b82f6;
+      background: #f3f8ff;
+      color: #344054;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 30px;
+    }
     .field-inline {
       display: flex;
       align-items: center;
@@ -1531,6 +1545,7 @@
 
       <section class="page">
         <div id="listView" class="view active">
+          <div class="report-tip">本页面支持创建请求亚马逊Audience（targeted）报告。受亚马逊 API 接口限流约束，每个广告主每日限请求 4 次；报告生成失败可手动重试，每份报告支持重试 3 次，仍失败请联系产品团队处理。</div>
           <div class="toolbar">
             <div class="filters">
               <div class="field-inline">
